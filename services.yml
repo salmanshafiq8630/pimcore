@@ -1,5 +1,5 @@
-services:
-    secret: hz*WUPehK~s-J4nGX*tMn9YC-qEzW-u4
+parameters:
+    secret: L5RKYCj67tYZ43iFN15w8CuNKeQECZzm31iFj9AQE3E=
     # default configuration for services in *this* file
     _defaults:
         # automatically injects dependencies in your services
