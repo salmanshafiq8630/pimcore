@@ -4,7 +4,7 @@ pimcore:
         timezone: America/Toronto
         language: en
         path_variable: ''
-        domain: blackbusinessatlas.local
+        domain: test.local
         redirect_to_maindomain: false
         debug_admin_translations: false
         show_cookie_notice: false
@@ -55,7 +55,7 @@ pimcore:
         proxy_pass: ''
     email:
         sender:
-            name: 'Black Business Atlas'
+            name: 'test'
             email: test@test.com
         return:
             name: ''
