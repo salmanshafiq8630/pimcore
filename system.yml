@@ -1,5 +1,4 @@
 pimcore:
-    secret: hz*WUPehK~s-J4nGX*tMn9YC-qEzW-u4
     general:
         timezone: America/Toronto
         language: en
