@@ -1,0 +1,184 @@
+services:
+    secret: hz*WUPehK~s-J4nGX*tMn9YC-qEzW-u4
+    # default configuration for services in *this* file
+    _defaults:
+        # automatically injects dependencies in your services
+        autowire: true
+        # automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+        # this means you cannot fetch services directly from the container via $container->get()
+        # if you need to do this, you can override this setting on individual services
+        public: false
+
+
+    # ---------------------------------------------------------
+    # Register all controllers of App as services
+    # ---------------------------------------------------------
+    App\Controller\:
+        resource: '../../src/App/Controller'
+        public: true
+        tags: ['controller.service_arguments']
+
+
+
+    # ---------------------------------------------------------
+    # Register all commands of App as commands
+    # ---------------------------------------------------------
+    App\Command\:
+        resource: '../../src/App/Command'
+        tags: ['console.command']
+
+
+
+    # ---------------------------------------------------------
+    # Forms
+    # ---------------------------------------------------------
+    App\Form\DeliveryAddressFormType: ~
+    App\Form\LoginFormType: ~
+    App\Form\RegistrationFormType: ~
+    App\Form\RegistrationFormHandler: ~
+    App\Form\UpdateProfileFormHandler: ~
+    App\Form\UpdateProfileFormType: ~
+    App\Form\CarSubmitFormType: ~
+    App\Form\BusinessSubmitFormType: ~
+    App\Form\BusinessEditFormHandler: ~
+    # App\Form\BusinessBlogFormType: ~
+    App\Form\BusinessReviewSubmitFormType: ~
+
+
+    App\Ecommerce\PaymentManager\Payment\StartPaymentRequest: ~
+    Stripe\Stripe: ~
+
+
+
+    # ---------------------------------------------------------
+    # Misc Services
+    # ---------------------------------------------------------
+    App\Services\PasswordRecoveryService: ~
+    App\Services\NewsletterDoubleOptInService: ~
+    App\Services\SegmentTrackingHelperService: ~
+    App\Website\Navigation\BreadcrumbHelperService: ~
+    App\Services\NotificationService: ~
+
+    App\Model\Product\CalculatedValue\QualityCalculator:
+        public: true
+
+    App\Model\Product\CalculatedValue\AccessoryPartName:
+        public: true
+
+        
+    # ---------------------------------------------------------
+    # Twig Extensions
+    # ---------------------------------------------------------
+    App\Twig\Extension\CategoryFilterExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\Country:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\Currency:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\GeneralFilterExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\NavigationExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\UniqidExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\LanguageSwitcherExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\ProductPageExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\NewsExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\AnnouncementExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\PrintCatalogExtension:
+        tags: ['twig.extension']
+
+    App\Twig\Extension\NoDiacriticExtension:
+        tags: ['twig.extension']
+
+    Twig\Extra\Intl\IntlExtension: null
+
+
+    # ---------------------------------------------------------
+    # Link Generators for DataObjects
+    # ---------------------------------------------------------
+    App\Website\LinkGenerator\CategoryLinkGenerator:
+        public: true
+
+    App\Website\LinkGenerator\ProductLinkGenerator:
+        public: true
+
+    App\Website\LinkGenerator\NewsLinkGenerator:
+        public: true
+
+    App\Website\LinkGenerator\AnnouncementLinkGenerator:
+        public: true
+
+
+
+    # ---------------------------------------------------------
+    # Overwrite Pimcore Default Services
+    # ---------------------------------------------------------
+
+    # overwrite PimcoreUrl helper to add existing parameters to generated urls
+    Pimcore\Templating\Helper\PimcoreUrl:
+        class: App\Website\Tool\PimcoreUrl
+        arguments:
+            $generator: '@router'
+        tags:
+            - { name: templating.helper, alias: pimcoreUrl }
+
+
+
+    # ---------------------------------------------------------
+    # Event Listeners
+    # ---------------------------------------------------------
+
+    # auto sets name based on key for bodystyle, manufacturer, category
+    App\EventListener\NameSettingListener:
+        tags:
+            - { name: kernel.event_listener, event: pimcore.dataobject.preAdd, method: onPreAdd }
+
+    # adds additional static files to admin backend
+    App\EventListener\PimcoreAdminListener:
+        tags:
+            - { name: kernel.event_listener, event: pimcore.bundle_manager.paths.css, method: addCSSFiles }
+            - { name: kernel.event_listener, event: pimcore.bundle_manager.paths.js, method: addJSFiles }
+
+    # checkout listeners for ecommerce application
+    App\EventListener\CheckoutEventListener:
+        tags:
+            - { name: kernel.event_listener, event: pimcore.ecommerce.ordermanager.postUpdateOrder, method: onUpdateOrder }
+            - { name: kernel.event_listener, event: pimcore.ecommerce.commitorderprocessor.sendConfirmationMails, method: sendConfirmationMail }
+            - { name: kernel.event_listener, event: pimcore.ecommerce.commitorderprocessor.postCommitOrder, method: postCommitOrder }
+
+    # authentication login listener for updating e-commerce framework environment after login
+    App\EventListener\AuthenticationLoginListener:
+        arguments:
+            $httpUtils: '@security.http_utils'
+
+    # authentication login listener for updating e-commerce framework environment after logout
+    App\EventListener\AuthenticationLogoutListener:
+        arguments:
+            $httpUtils: '@security.http_utils'
+
+
+
+
+
+
+    # ---------------------------------------------------------
+    # Workflow
+    # ---------------------------------------------------------
+    App\Workflow\SupportsStrategy: ~
+
