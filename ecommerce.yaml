@@ -157,7 +157,7 @@ pimcore_ecommerce_framework:
     
     payment_manager:
         # Service id of payment manager implementation - following value is default value an can be omitted
-                payment_manager_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\PaymentManager
+               # payment_manager_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\PaymentManager
 
         # Configuration of payment providers, key is name of provider
         providers:
