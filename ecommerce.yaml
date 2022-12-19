@@ -1,0 +1,270 @@
+pimcore:
+    models:
+        class_overrides:
+            Pimcore\Model\DataObject\Business: \App\Model\Product\Business
+            Pimcore\Model\DataObject\Membership: \App\Model\Product\Membership
+            Pimcore\Model\DataObject\Category: App\Model\Product\Category
+
+pimcore_ecommerce_framework:
+    environment:
+        environment_id: App\Ecommerce\Overrides\Environment
+    
+    price_systems:
+        default:
+            # Price system defined and configured as container service
+            id: app.default_price_system
+
+    index_service:
+        tenants:
+            default:
+                enabled: true
+                config_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Config\DefaultMysql  
+                worker_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Worker\DefaultMysql
+                search_attributes:
+                    - name
+                    - price
+                    - category_name
+                    - business_features
+                    - business_tags
+                    - locationAddress
+                    # - owner_membershipstatus
+                attributes:
+                    name:
+                        fieldname: OSName
+                        type: varchar(255)
+                        filter_group: string
+                    price:
+                        fieldname: oSPrice
+                        type: varchar(255)
+                        filter_group: multiselect
+                    category_name:
+                        fieldname: 'categories'
+                        type: varchar(255)
+                        interpreter_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Interpreter\ObjectValue
+                        interpreter_options:
+                            target:
+                                fieldname: name
+                                locale: 'en'
+                        filter_group: string
+                    categories:
+                        interpreter_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Interpreter\DefaultObjects
+                        filter_group: relation
+                    business_features:
+                        fieldname: features
+                        type: varchar(255)
+                        filter_group: multiselect
+                    business_tags:
+                        fieldname: tags
+                        type: varchar(255)
+                        filter_group: multiselect
+                    locationAddress:
+                        fieldname: locationAddress
+                        type: varchar(255)
+                        filter_group: multiselect
+                    owner_membershipstatus:
+                        # fieldname: 'owner'
+                        type: varchar(100)
+                        # interpreter_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Interpreter\ObjectValue
+                        # interpreter_options:
+                        #     onlyValue: true
+                        getter_id: App\Ecommerce\IndexService\Getter\ModifiedBrickGetter
+                        getter_options:
+                            relatedobject: owner
+                            brickfield: membershipStatus
+                            bricktype: ActiveMemberships
+                            fieldname: expiryPlatinum
+                    owner:
+                        interpreter_id: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Interpreter\DefaultObjects
+                        filter_group: relation
+    
+    filter_service:
+
+        # Configure assortment tenants - at least one tenant has to be configured
+        # If a _defaults key is set, it will be merged into every tenant.
+        tenants:
+            default:
+                # Assign backend implementations and views to filter type field collections
+                filter_types:
+                    FilterInputfield:
+                        # Service id for filter type implementation
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\Input
+                        # Default template for filter, can be overwritten in filter definition
+                        template: 'product/filters/input.html.twig'
+
+                    FilterNumberRange:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\NumberRange
+                        template: 'product/filters/numberrange.html.twig'
+
+                    FilterNumberRangeSelection:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\NumberRangeSelection
+                        template: 'product/filters/numberrange_select.html.twig'
+
+                    FilterSelect:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\Select
+                        template: 'product/filters/select.html.twig'
+
+                    FilterSelectFromMultiSelect:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\SelectFromMultiSelect
+                        template: 'product/filters/select.html.twig'
+
+                    FilterMultiSelect:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\MultiSelect
+                        template: 'product/filters/multi_select.html.twig'
+
+                    FilterMultiSelectFromMultiSelect:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\MultiSelectFromMultiSelect
+                        template: 'product/filters/multi_select.html.twig'
+
+                    FilterMultiRelation:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\MultiSelectRelation
+                        template: 'product/filters/multi_relation.html.twig'
+
+                    FilterCategory:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\SelectCategory
+                        template: 'product/filters/select_category.html.twig'
+
+                    FilterRelation:
+                        filter_type_id: Pimcore\Bundle\EcommerceFrameworkBundle\FilterService\FilterType\SelectRelation
+                        template: 'product/filters/object_relation.html.twig'
+    
+    
+    
+    cart_manager:
+        tenants:
+            default:
+                cart:
+                    factory_options:
+                        cart_readonly_mode: deactivated
+    
+    checkout_manager:
+        tenants:
+            default:
+                payment:
+                    provider: stripePayment
+                    # provider: heidelpay
+                steps:
+                    deliveryaddress:
+                        class: \Pimcore\Bundle\EcommerceFrameworkBundle\CheckoutManager\DeliveryAddress
+                    confirm:
+                        class: \App\Ecommerce\CheckoutManager\Confirm
+
+
+    order_manager:
+        tenants:
+            default:
+                options:
+                    parent_order_folder: /Memberships/Orders/%%Y/%%m/%%d
+    
+    payment_manager:
+        # Service id of payment manager implementation - following value is default value an can be omitted
+                payment_manager_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\PaymentManager
+
+        # Configuration of payment providers, key is name of provider
+        providers:
+            stripePayment:                
+                provider_id: App\Ecommerce\PaymentManager\Payment\StripePayment
+                profile: live
+                profiles:
+                    sandbox:
+                        public_key: pk_test_51IT9UjCnMDHEKJPcniAeesbLShjBEPn3L0Ub8WcGDNSgtsVFlWiNrysQg2AfCaaOpUxoGJD6WuMS4qnBDjW4vfcT00d7vbWLev
+                        secret_key: sk_test_51IT9UjCnMDHEKJPcZllQs8r3Z308zphhsBcYUNkTNSAr1mXC0GpmPEYIbSAXmnDo0YDGMNr2tV50dEckvgtF2S6K00B8P0QRQ0
+                    live:
+                        public_key: pk_live_51IT9UjCnMDHEKJPch2gL774VipI1Irkmk0GjurB9KocuJahR0YdQTsgWfdQVRRgVRsoH4GrbCj38pevYo07bmYfv00P6U8AMoS
+                        secret_key: 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
+
+            paypal:
+                provider_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\Payment\PayPalSmartPaymentButton
+                profile: sandbox
+                profiles:
+                    sandbox:
+                        client_id: sb-yojhc6291724@business.example.com
+                        client_secret: access_token$sandbox$dzw57hwspx8b33tn$5d63dbdb059d6d4c8a85975f086717d0
+                        
+                        # defines, if payment caputure should take place automatic or manual, default is automatic
+                        capture_strategy: automatic   
+                        
+                        # defines mode of PayPal API, default value is sandbox  
+                        mode: sandbox                 
+                        
+                        # defines PayPal application context for shipping, default value is NO_SHIPPING
+                        # see https://developer.paypal.com/docs/api/orders/v2/#definition-application_context 
+                        shipping_preference: NO_SHIPPING
+
+                        # defines PayPal application context for user action, default value is PAY_NOW
+                        # see https://developer.paypal.com/docs/api/orders/v2/#definition-application_context                        
+                        user_action: PAY_NOW
+
+                    live:
+                        client_id: <YOUR PAYPAL REST API CLIENT ID>
+                        client_secret: <YOUR PAYPAL REST API CLIENT SECRET>
+                        mode: live
+
+            
+            heidelpay:
+                provider_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\Payment\Heidelpay
+                profile: sandbox
+                profiles:
+                    sandbox:
+                        publicAccessKey: s-pub-2a10GBUCSfOqqtyulwXJub7e8m0EwDbP
+                        privateAccessKey: s-priv-2a10PcxkejMP6YJwHH1shzvHyOd8PrOt
+
+
+            datatrans:
+                # Service id of payment provider implementation
+                provider_id: Pimcore\Bundle\EcommerceFrameworkBundle\PaymentManager\Payment\Datatrans
+
+                # Currently active profile
+                profile: sandbox
+
+                # Available profiles with options
+                profiles:
+                    sandbox:
+                        merchant_id: 1000011011
+                        sign: 30916165706580013
+                        use_digital_signature: false
+                        recurring_payment_enabled: true
+                    live:
+                        merchant_id: merchant_id_id
+                        sign: sign_id
+                        use_digital_signature: false
+                        mode: live
+    
+    tracking_manager:
+        trackers:
+            enhanced_ecommerce:
+                enabled: true
+               # item_builder_id: App\Ecommerce\Tracking\TrackingItemBuilder
+
+            matomo:
+                enabled: true
+                id: Pimcore\Bundle\EcommerceFrameworkBundle\Tracking\Tracker\Piwik
+
+services:
+
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Custom service definitions for index service
+    App\Ecommerce\IndexService\Config\MySqlConfig:
+        parent: Pimcore\Bundle\EcommerceFrameworkBundle\IndexService\Config\AbstractConfig
+        autowire: true
+        autoconfigure: false
+
+    App\Ecommerce\IndexService\Getter\ModifiedBrickGetter: ~
+
+    app.default_price_system:
+        class: Pimcore\Bundle\EcommerceFrameworkBundle\PriceSystem\AttributePriceSystem
+        arguments:
+            $options:
+                attribute_name: price
+
+    App\Ecommerce\Overrides\Environment:
+        parent: Pimcore\Bundle\EcommerceFrameworkBundle\Environment
+        autowire: true
+        autoconfigure: false
+
+    App\Ecommerce\PaymentManager\Payment\StripePayment: ~
+
+
+    App\Ecommerce\IndexService\SegmentGetter: ~
